@@ -1,0 +1,23 @@
+name: Sync from upstream Sunday
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.repository == 'Reuel16/termux-packages'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync upstream master to upstream-sync branch
+        run: |
+          git clone https://github.com/Reuel16/termux-packages.git repo
+          cd repo
+          git remote add upstream https://github.com/termux/termux-packages.git
+          git fetch upstream master
+          git checkout -B upstream-sync upstream/master
+          git push origin upstream-sync --force

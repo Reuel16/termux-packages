@@ -1,11 +1,11 @@
-name: Generate bootstrap archives (android-7)
+name: Generate AlphaCode bootstrap (aarch64)
 
 on:
   schedule:
     - cron: "0 0 * * 0"
   workflow_dispatch:
 
-permissions: {} # none
+permissions: {}
 
 concurrency:
   group: ${{ github.workflow }}
@@ -14,30 +14,24 @@ concurrency:
 jobs:
   build:
     permissions:
-      contents: read # actions/upload-artifact doesn't need contents: write
+      contents: read
     runs-on: ubuntu-slim
-    strategy:
-      matrix:
-        arch:
-          - aarch64
-          - arm
-          - i686
-          - x86_64
-    if: github.repository == 'termux/termux-packages'
+    if: github.repository == 'Reuel16/termux-packages'
     steps:
       - name: Git clone
         uses: actions/checkout@v7
       - name: Create bootstrap archive
-        run: ./scripts/generate-bootstraps.sh --architectures ${{ matrix.arch }}
+        run: ./scripts/generate-bootstraps.sh --architectures aarch64
       - name: Store artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: bootstrap-archives-${{ matrix.arch }}-${{ github.sha }}
+          name: bootstrap-archives-aarch64-${{ github.sha }}
           path: "*.zip"
   publish:
     permissions:
-      contents: write # for git push
+      contents: write
     needs: build
+    if: github.repository == 'Reuel16/termux-packages'
     runs-on: ubuntu-slim
     steps:
       - name: Git clone
@@ -59,13 +53,13 @@ jobs:
           else
             tag_rev=1
           fi
-          new_tag="${new_tag}-r${tag_rev}+apt.android-7"
+          new_tag="${new_tag}-r${tag_rev}+apt.android-7-alphacode"
           echo "tag_name=$new_tag" >> $GITHUB_OUTPUT
       - name: Publish bootstrap zips to GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create ${{ steps.get_tag.outputs.tag_name }} --title "Bootstrap archives for Termux application (apt.android-7)"
+          gh release create ${{ steps.get_tag.outputs.tag_name }} --title "AlphaCode bootstrap archives (aarch64, apt.android-7)"
           for file in *.zip; do
             gh release upload ${{ steps.get_tag.outputs.tag_name }} "$file"
           done
